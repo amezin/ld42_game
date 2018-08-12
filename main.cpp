@@ -51,8 +51,8 @@ int main()
             background.update();
 
             if (game) {
-                for (int i = 0; i < 100; i++) {
-                    game->update(0.01);
+                for (int i = 0; i < 50; i++) {
+                    game->update(0.02);
                 }
             }
 
