@@ -26,6 +26,7 @@ struct Game
     SDL_Texture *const chuvak2;
     SDL_Texture *const chuvak25;
     SDL_Texture *const asteroid;
+    SDL_Texture *const ufo;
     double chuvak_anim;
     double chuvak_x, chuvak_y;
     double chuvak_speed_x, chuvak_speed_y;
@@ -47,13 +48,16 @@ struct Game
         double angle;
         double rotation_speed;
 
-        int y;
+        double y;
         int size;
         SDL_Color color;
+        SDL_Texture *texture;
+        bool homing;
     };
 
     std::list<Asteroid> asteroids;
     void gen_asteroid();
+    void gen_ufo();
 
     double play_time;
 };

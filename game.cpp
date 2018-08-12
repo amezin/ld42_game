@@ -16,6 +16,7 @@ Game::Game(SDL_Renderer *renderer, Input &input, std::random_device &rd)
       chuvak2(IMG_LoadTexture(renderer, "data/chuvak2.png")),
       chuvak25(IMG_LoadTexture(renderer, "data/chuvak25.png")),
       asteroid(IMG_LoadTexture(renderer, "data/asteroid1.png")),
+      ufo(IMG_LoadTexture(renderer, "data/ufo.png")),
       chuvak_anim(0),
       chuvak_speed_x(0.0),
       chuvak_speed_y(0.0),
@@ -73,12 +74,31 @@ void Game::update(double scale)
 
     asteroid_spawn_delay -= scale;
     if (asteroid_spawn_delay <= 0.0) {
-        asteroid_spawn_delay += 100.0 / std::log10(2.0 + play_time);
-        gen_asteroid();
+        std::uniform_real_distribution<double> next_spawn(1.0, 1000.0 / std::log(3.0 + play_time));
+        asteroid_spawn_delay += next_spawn(mt);
+
+        std::uniform_int_distribution<int> ufo_prob(0, 15);
+        if (ufo_prob(mt) == 0) {
+            gen_ufo();
+        } else {
+            gen_asteroid();
+        }
     }
 
     if (dead) {
         return;
+    }
+
+    for (auto &a : asteroids) {
+        if (a.homing) {
+            double chuvak_center_y = chuvak_y + chuvak_h * 0.5;
+            double asteroid_center_y = a.y + a.size * 0.5;
+            double d = chuvak_center_y - asteroid_center_y;
+            double scaled_speed = a.speed * scale * 0.1;
+            if (d > scaled_speed) d = scaled_speed;
+            if (d < -scaled_speed) d = -scaled_speed;
+            a.y += d;
+        }
     }
 
     play_time += scale;
@@ -168,10 +188,10 @@ void Game::draw()
     SDL_RenderCopy(renderer, texture, nullptr, &rect);
 
     for (auto &a : asteroids) {
-        SDL_SetTextureColorMod(asteroid, a.color.r, a.color.g, a.color.b);
+        SDL_SetTextureColorMod(a.texture, a.color.r, a.color.g, a.color.b);
 
-        SDL_Rect rect { int(a.x), a.y, a.size, a.size };
-        SDL_RenderCopyEx(renderer, asteroid, nullptr, &rect, a.angle, nullptr, SDL_FLIP_NONE);
+        SDL_Rect rect { int(a.x), int(a.y), a.size, a.size };
+        SDL_RenderCopyEx(renderer, a.texture, nullptr, &rect, a.angle, nullptr, SDL_FLIP_NONE);
     }
 
     for (auto &p : blood) {
@@ -187,9 +207,9 @@ void Game::gen_asteroid()
     std::uniform_int_distribution<int> particle_y(0, game_h);
     std::uniform_real_distribution<double> particle_angle(0.0, 360.0);
 
-    std::uniform_int_distribution<int> asteroid_size(32, 128);
+    std::uniform_int_distribution<int> asteroid_size(32, 320);
     std::uniform_int_distribution<Uint8> asteroid_color(127);
-    std::uniform_real_distribution<double> asteroid_speed(10.0, 20.0);
+    std::uniform_real_distribution<double> asteroid_speed(5.0, 25.0);
     std::uniform_real_distribution<double> asteroid_rotation_speed(-0.5, 0.5);
 
     Asteroid a;
@@ -203,5 +223,31 @@ void Game::gen_asteroid()
     a.angle = particle_angle(mt);
     a.speed = asteroid_speed(mt);
     a.rotation_speed = asteroid_rotation_speed(mt);
+    a.texture = asteroid;
+    a.homing = false;
+    asteroids.push_back(a);
+}
+
+void Game::gen_ufo()
+{
+    std::uniform_int_distribution<int> particle_y(0, game_h);
+
+    std::uniform_int_distribution<int> asteroid_size(32, 128);
+    std::uniform_int_distribution<Uint8> asteroid_color(200);
+    std::uniform_real_distribution<double> asteroid_speed(10.0, 25.0);
+
+    Asteroid a;
+    a.x = game_w;
+    a.size = asteroid_size(mt);
+    a.y = particle_y(mt) - a.size / 2;
+    a.color.a = 255;
+    a.color.r = asteroid_color(mt);
+    a.color.g = asteroid_color(mt);
+    a.color.b = asteroid_color(mt);
+    a.angle = 0.0;
+    a.speed = asteroid_speed(mt);
+    a.rotation_speed = 0.0;
+    a.texture = ufo;
+    a.homing = true;
     asteroids.push_back(a);
 }
