@@ -111,9 +111,8 @@ void Game::update(double scale)
     chuvak_speed_x += input.mx * 0.4 * scale;
     chuvak_speed_y += input.my * 0.4 * scale;
 
-    static const double deceleration = 0.025;
-    chuvak_speed_x = decelerate(chuvak_speed_x, deceleration * scale);
-    chuvak_speed_y = decelerate(chuvak_speed_y, deceleration * scale);
+    chuvak_speed_y = decelerate(chuvak_speed_y, 0.025 * scale);
+    chuvak_speed_x -= 1.0 * pow(chuvak_x / game_w, 3.0) * scale;
 
     for (auto &a : asteroids) {
         double chuvak_center_x = chuvak_x + chuvak_w * 0.5;
