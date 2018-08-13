@@ -60,7 +60,7 @@ void Input::update()
     if (abs(my) < hyst) my = 0.0;
 
     button_pressed = false;
-    for (int i = SDL_CONTROLLER_BUTTON_A; i < SDL_CONTROLLER_BUTTON_MAX; i++) {
+    for (int i = SDL_CONTROLLER_BUTTON_A; i < SDL_CONTROLLER_BUTTON_LEFTSTICK; i++) {
         if (SDL_GameControllerGetButton(controller, SDL_GameControllerButton(i))) {
             button_pressed = true;
         }
